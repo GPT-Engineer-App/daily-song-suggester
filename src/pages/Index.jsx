@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Flex, Heading, Text, Image, Link, Icon, Spinner } from "@chakra-ui/react";
-import { FaSpotify } from "react-icons/fa";
+import { FaMusic } from "react-icons/fa";
 
 const Index = () => {
   const [song, setSong] = useState(null);
@@ -10,19 +10,15 @@ const Index = () => {
   useEffect(() => {
     const fetchSong = async () => {
       try {
-        const response = await fetch("https://api.spotify.com/v1/search?q=genre:kurdish,english,turkish&type=track&limit=50", {
-          headers: {
-            Authorization: "Bearer YOUR_SPOTIFY_ACCESS_TOKEN",
-          },
-        });
+        const response = await fetch("https://api.musixmatch.com/ws/1.1/chart.tracks.get?chart_name=top&page=1&page_size=50&country=tr&f_has_lyrics=1&apikey=3b1aa45594419463207c089876070291");
         const data = await response.json();
-        const tracks = data.tracks.items;
-        const randomSong = tracks[Math.floor(Math.random() * tracks.length)];
+        const tracks = data.message.body.track_list;
+        const randomSong = tracks[Math.floor(Math.random() * tracks.length)].track;
         setSong(randomSong);
 
-        const lyricsResponse = await fetch(`https://api.lyrics.ovh/v1/${randomSong.artists[0].name}/${randomSong.name}`);
+        const lyricsResponse = await fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${randomSong.track_id}&apikey=3b1aa45594419463207c089876070291`);
         const lyricsData = await lyricsResponse.json();
-        setLyrics(lyricsData.lyrics || "Sözler bulunamadı.");
+        setLyrics(lyricsData.message.body.lyrics.lyrics_body || "Sözler bulunamadı.");
 
         setIsLoading(false);
       } catch (error) {
@@ -41,18 +37,18 @@ const Index = () => {
       ) : (
         <>
           <Box width={["100%", "40%"]} mb={[8, 0]} mr={[0, 8]}>
-            <Image src={song.album.images[0].url} alt={song.name} mb={4} />
+            <Image src={`https://s.mxmcdn.net/images-storage/albums/${song.album_id.slice(0, 3)}/${song.album_id.slice(3, 6)}/${song.album_id}.jpg`} alt={song.track_name} mb={4} />
             <Heading as="h2" size="lg" mb={2}>
-              {song.name}
+              {song.track_name}
             </Heading>
             <Text fontSize="xl" mb={2}>
-              {song.artists[0].name}
+              {song.artist_name}
             </Text>
             <Text fontSize="lg" mb={4}>
-              Süre: {Math.floor(song.duration_ms / 60000)}:{(song.duration_ms % 60000) / 1000}
+              Süre: {Math.floor(song.track_length / 60)}:{song.track_length % 60}
             </Text>
-            <Link href={song.external_urls.spotify} isExternal>
-              <Icon as={FaSpotify} boxSize={8} />
+            <Link href={`https://www.musixmatch.com/lyrics/${song.artist_name}/${song.track_name}`} isExternal>
+              <Icon as={FaMusic} boxSize={8} />
             </Link>
           </Box>
           <Box width={["100%", "60%"]}>
