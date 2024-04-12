@@ -10,16 +10,10 @@ const Index = () => {
   useEffect(() => {
     const fetchSong = async () => {
       try {
-        const response = await fetch("https://api.musixmatch.com/ws/1.1/chart.tracks.get?chart_name=top&page=1&page_size=50&country=tr&f_has_lyrics=1&apikey=3b1aa45594419463207c089876070291");
+        const response = await fetch("/api/song");
         const data = await response.json();
-        const tracks = data.message.body.track_list;
-        const randomSong = tracks[Math.floor(Math.random() * tracks.length)].track;
-        setSong(randomSong);
-
-        const lyricsResponse = await fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${randomSong.track_id}&apikey=3b1aa45594419463207c089876070291`);
-        const lyricsData = await lyricsResponse.json();
-        setLyrics(lyricsData.message.body.lyrics.lyrics_body || "Sözler bulunamadı.");
-
+        setSong(data.song);
+        setLyrics(data.lyrics);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching song:", error);
